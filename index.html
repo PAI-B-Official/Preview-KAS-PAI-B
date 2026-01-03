@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Keuangan - PAI B IAINU Kebumen</title>
+    
+    <!-- External Libraries -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind Configuration -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'crimson-dark': '#1a0505',
+                        'crimson-main': '#8a0000',
+                        'crimson-light': '#ff1f1f',
+                        'glass': 'rgba(255, 255, 255, 0.05)',
+                    },
+                    fontFamily: {
+                        'tech': ['Orbitron', 'sans-serif'],
+                        'body': ['Poppins', 'sans-serif'],
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'spin-slow': 'spin 2s linear infinite',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #0a0000;
+            color: #e5e5e5;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* --- CUSTOM RED SCROLLBAR --- */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #0f0000; /* Latar belakang track gelap */
+            border-left: 1px solid #330000;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #500000, #cc0000); /* Gradasi Merah */
+            border-radius: 5px;
+            border: 2px solid #0f0000; /* Memberi jarak agar terlihat mengambang */
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, #700000, #ff0000); /* Merah lebih terang saat hover */
+        }
+
+        /* Untuk Firefox */
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: #8a0000 #0f0000;
+        }
+
+        /* Glassmorphism Effect */
+        .glass-panel {
+            background: rgba(40, 0, 0, 0.6);
+            border: 1px solid rgba(255, 50, 50, 0.1);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+        }
+
+        @media (min-width: 768px) {
+            .glass-panel {
+                background: rgba(40, 0, 0, 0.4);
+                backdrop-filter: blur(12px);
+                -webkit-backdrop-filter: blur(12px);
+            }
+        }
+
+        /* Custom Modal */
+        .custom-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9); 
+            z-index: 200;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+        .custom-modal.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* Animation for Error Cross */
+        .animate-cross path {
+            stroke-dasharray: 100;
+            stroke-dashoffset: 100;
+            animation: dash 0.5s cubic-bezier(0.4, 0, 0.6, 1) forwards;
+        }
+        @keyframes dash {
+            to { stroke-dashoffset: 0; }
+        }
+        
+        /* Shimmer loading effect */
+        .shimmer {
+            background: linear-gradient(90deg, #1f1f1f 25%, #2a2a2a 50%, #1f1f1f 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+    </style>
+</head>
+<body class="font-body min-h-screen flex flex-col items-center justify-center relative selection:bg-red-500 selection:text-white">
+
+    <!-- Background Effects -->
+    <div class="fixed inset-0 z-[-1] overflow-hidden pointer-events-none">
+        <div class="absolute inset-0 bg-gradient-to-b from-black via-[#1a0000] to-black opacity-80"></div>
+        <div class="hidden md:block absolute top-[-10%] left-[-10%] w-96 h-96 bg-red-900 rounded-full mix-blend-multiply filter blur-[100px] opacity-30 animate-pulse-slow"></div>
+        <div class="hidden md:block absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-red-800 rounded-full mix-blend-multiply filter blur-[100px] opacity-30 animate-pulse-slow"></div>
+    </div>
+
+    <!-- MAIN CONTAINER -->
+    <main class="w-full max-w-4xl px-4 py-8 flex flex-col items-center justify-center min-h-screen">
+
+        <!-- LOGIN SECTION -->
+        <div id="finance-login" class="w-full max-w-md transition-all duration-500">
+            <div class="glass-panel p-8 rounded-2xl border border-red-500/30">
+                <div class="text-center mb-8">
+                    <div class="w-16 h-16 bg-red-900/50 rounded-full flex items-center justify-center mx-auto mb-4 border border-red-500 shadow-[0_0_15px_rgba(220,38,38,0.5)]">
+                        <i class="fas fa-coins text-red-400 text-2xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-white font-tech tracking-wider">FINANCE PORTAL</h2>
+                    <p class="text-gray-400 text-sm mt-2">PAI B Class Official Finance</p>
+                </div>
+
+                <form onsubmit="handleFinanceLogin(event)" class="space-y-6">
+                    <div>
+                        <label class="block text-gray-400 text-xs uppercase tracking-wider mb-2">Username</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-user text-gray-500"></i>
+                            </div>
+                            <input type="text" id="finance-user" class="w-full bg-black/50 border border-gray-700 rounded-lg py-3 pl-10 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all" placeholder="Enter username">
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-gray-400 text-xs uppercase tracking-wider mb-2">Password</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-key text-gray-500"></i>
+                            </div>
+                            <input type="password" id="finance-pass" class="w-full bg-black/50 border border-gray-700 rounded-lg py-3 pl-10 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all" placeholder="••••••••">
+                        </div>
+                        <p id="pass-error-msg" class="text-red-500 text-xs mt-2 hidden flex items-center animate-pulse">
+                            <i class="fas fa-exclamation-circle mr-1"></i> Username atau Password Salah
+                        </p>
+                    </div>
+
+                    <button type="submit" class="w-full bg-red-700 hover:bg-red-600 text-white font-bold py-3 rounded-lg transition-all shadow-[0_0_15px_rgba(220,38,38,0.4)] hover:shadow-[0_0_25px_rgba(220,38,38,0.6)]">
+                        LOGIN
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- DASHBOARD SECTION (Hidden by default) -->
+        <div id="finance-dashboard" class="hidden w-full flex-col items-center animate-fadeIn">
+            <div class="text-center mb-10 w-full">
+                <h2 class="text-3xl md:text-5xl font-tech font-bold text-white mb-2">KEUANGAN KELAS</h2>
+                <div class="h-1 w-20 bg-red-600 mx-auto rounded-full shadow-[0_0_10px_#ef4444]"></div>
+                <div class="flex items-center justify-center gap-2 mt-2 text-gray-400 text-sm">
+                    <span>Transparansi Dana PAI B 2025</span>
+                    <button onclick="fetchFinanceData()" class="hover:text-white transition-colors" title="Refresh Data">
+                        <i class="fas fa-sync-alt" id="refresh-icon"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 w-full">
+                <!-- Total Saldo Card (Dynamic) -->
+                <div class="glass-panel p-8 rounded-2xl border border-red-500/30 relative overflow-hidden group hover:border-red-500/60 transition-colors">
+                    <div class="absolute -right-6 -top-6 w-32 h-32 bg-red-600 rounded-full opacity-10 blur-xl group-hover:opacity-20 transition-all"></div>
+                    <div class="relative z-10">
+                        <p class="text-gray-400 text-sm uppercase tracking-widest mb-2 flex items-center gap-2">
+                            <i class="fas fa-wallet text-red-500"></i> Total Saldo Kas
+                        </p>
+                        <!-- Skeleton Loader Saldo -->
+                        <div id="saldo-skeleton" class="h-10 w-48 shimmer rounded mb-4"></div>
+                        <!-- Actual Value -->
+                        <h3 id="saldo-display" class="hidden text-4xl md:text-5xl font-bold text-white mb-4 font-mono tracking-tight">Rp 0</h3>
+                        
+                        <!-- Profit/Minus Indicator (Bulan Ini) -->
+                        <div id="indicator-container" class="hidden flex items-center text-sm w-max px-2 py-1 rounded border transition-colors">
+                            <i id="indicator-icon" class="fas fa-minus mr-1"></i>
+                            <span id="indicator-text">Memuat...</span>
+                        </div>
+                        <div id="indicator-skeleton" class="h-6 w-32 shimmer rounded"></div>
+                    </div>
+                </div>
+
+                <!-- Info Card -->
+                <div class="glass-panel p-8 rounded-2xl border border-gray-700/50 relative overflow-hidden">
+                    <div class="flex items-start gap-4">
+                        <div class="w-12 h-12 rounded-lg bg-blue-900/30 flex items-center justify-center text-blue-400 border border-blue-500/30 shrink-0">
+                            <i class="fas fa-info-circle text-xl"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-white font-bold text-lg mb-2">Informasi Penting</h4>
+                            <p class="text-gray-400 text-sm leading-relaxed">
+                                Data yang ditampilkan diambil langsung dari Database Google Sheet "Riwayat". Harap konfirmasi ke bendahara jika terdapat selisih.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIWAYAT PENGELUARAN SECTION (Restored & Dynamic) -->
+            <div class="w-full mb-8">
+                <button onclick="toggleExpenseHistory()" class="flex items-center justify-between w-full bg-gray-900/80 p-5 rounded-xl border border-gray-700 hover:border-red-500 transition-all group shadow-lg z-20 relative">
+                    <span class="font-bold text-white flex items-center gap-3">
+                        <i class="fas fa-history text-red-500 text-lg"></i> Riwayat Laporan KAS
+                    </span>
+                    <i id="history-arrow" class="fas fa-chevron-down text-gray-400 group-hover:text-white transition-transform duration-300"></i>
+                </button>
+                
+                <div id="expense-history-list" class="max-h-0 opacity-0 overflow-hidden transition-all duration-500 ease-in-out">
+                    <div id="history-content" class="pt-4 space-y-3">
+                        <!-- Content will be injected by JS -->
+                        <div class="text-center py-4 text-gray-500">
+                            <i class="fas fa-spinner fa-spin mr-2"></i> Mengambil data...
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <button onclick="logoutFinance()" class="group mx-auto flex items-center gap-2 text-red-400 hover:text-white text-sm transition-colors py-2 px-4 rounded-full hover:bg-red-900/30 border border-transparent hover:border-red-500/30">
+                <i class="fas fa-sign-out-alt group-hover:-translate-x-1 transition-transform"></i> Keluar dari sesi keuangan
+            </button>
+        </div>
+
+    </main>
+
+    <!-- AUTH FAILED MODAL -->
+    <div id="auth-error-modal" class="custom-modal">
+        <div class="bg-black/90 border border-red-600 rounded-xl p-8 max-w-sm w-full mx-4 text-center transform scale-100 shadow-[0_0_50px_rgba(220,38,38,0.5)]">
+            <div class="mb-4 flex justify-center">
+                <!-- X Icon Animation -->
+                <svg class="w-20 h-20 text-red-600 animate-cross" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </div>
+            <h3 class="text-2xl font-bold text-white mb-2 font-tech">ACCESS DENIED</h3>
+            <p class="text-gray-400 text-sm mb-6">Username atau Password yang Anda masukkan tidak valid.</p>
+            <button onclick="closeAuthError()" class="bg-red-700 hover:bg-red-600 text-white px-6 py-2 rounded-lg text-sm font-bold transition-colors w-full">
+                COBA LAGI
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- KONFIGURASI API ---
+        // GANTI URL INI DENGAN URL WEB APP HASIL DEPLOY GOOGLE SCRIPT ANDA
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwNUd_40ew5X_nDHAKv67__ArI68SSb_xIjDYMBRdYF_IsCyFXO0XS-adwymXOkgeZv/exec'; 
+
+        /* --- FINANCE LOGIC --- */
+        function handleFinanceLogin(e) {
+            e.preventDefault();
+            const user = document.getElementById('finance-user').value;
+            const pass = document.getElementById('finance-pass');
+            const passVal = pass.value;
+            const errorMsg = document.getElementById('pass-error-msg');
+            const loginSection = document.getElementById('finance-login');
+            const dashboardSection = document.getElementById('finance-dashboard');
+
+            if (user === 'Tarbiyah' && passVal === 'paib.2025') {
+                loginSection.style.opacity = '0';
+                setTimeout(() => {
+                    loginSection.classList.add('hidden');
+                    dashboardSection.classList.remove('hidden');
+                    void dashboardSection.offsetWidth; 
+                    
+                    // Trigger Data Fetch saat Login Berhasil
+                    fetchFinanceData();
+                }, 300);
+                
+                errorMsg.classList.add('hidden');
+            } else {
+                pass.value = ''; 
+                errorMsg.classList.remove('hidden'); 
+                const modal = document.getElementById('auth-error-modal');
+                modal.classList.add('active');
+            }
+        }
+
+        function closeAuthError() {
+            document.getElementById('auth-error-modal').classList.remove('active');
+            document.getElementById('finance-pass').focus();
+        }
+
+        function logoutFinance() {
+            const loginSection = document.getElementById('finance-login');
+            const dashboardSection = document.getElementById('finance-dashboard');
+
+            document.getElementById('finance-user').value = '';
+            document.getElementById('finance-pass').value = '';
+            document.getElementById('pass-error-msg').classList.add('hidden');
+
+            dashboardSection.classList.add('hidden');
+            loginSection.classList.remove('hidden');
+            setTimeout(() => {
+                loginSection.style.opacity = '1';
+            }, 50);
+        }
+
+        /* --- FETCH DATA DARI GOOGLE SHEET --- */
+        async function fetchFinanceData() {
+            // UI States: Loading
+            document.getElementById('refresh-icon').classList.add('animate-spin-slow');
+            document.getElementById('saldo-skeleton').classList.remove('hidden');
+            document.getElementById('saldo-display').classList.add('hidden');
+            
+            try {
+                // Gunakan mode no-cors jika perlu, tapi idealnya Web App di-set "Anyone"
+                const response = await fetch(SCRIPT_URL);
+                const data = await response.json();
+
+                if (data) {
+                    updateDashboardUI(data);
+                }
+            } catch (error) {
+                console.error("Gagal mengambil data:", error);
+                document.getElementById('saldo-display').innerText = "Error API";
+                document.getElementById('saldo-display').classList.remove('hidden');
+                document.getElementById('saldo-skeleton').classList.add('hidden');
+            } finally {
+                document.getElementById('refresh-icon').classList.remove('animate-spin-slow');
+            }
+        }
+
+        function updateDashboardUI(data) {
+            // 1. Update Saldo
+            const formatter = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 });
+            const saldoEl = document.getElementById('saldo-display');
+            const saldoSkel = document.getElementById('saldo-skeleton');
+            
+            saldoEl.innerText = formatter.format(data.saldo);
+            saldoSkel.classList.add('hidden');
+            saldoEl.classList.remove('hidden');
+
+            // 2. Update Indicator (Bulan Ini)
+            const indContainer = document.getElementById('indicator-container');
+            const indIcon = document.getElementById('indicator-icon');
+            const indText = document.getElementById('indicator-text');
+            const indSkel = document.getElementById('indicator-skeleton');
+            
+            const change = data.perubahanBulanIni;
+            
+            indSkel.classList.add('hidden');
+            indContainer.classList.remove('hidden');
+            
+            if (change > 0) {
+                // Profit (Hijau)
+                indContainer.className = "flex items-center text-sm w-max px-2 py-1 rounded border transition-colors bg-green-900/20 border-green-500/30 text-green-400";
+                indIcon.className = "fas fa-arrow-up mr-1";
+                indText.innerText = "+" + formatter.format(change) + " (Bulan Ini)";
+            } else if (change < 0) {
+                // Minus (Merah)
+                indContainer.className = "flex items-center text-sm w-max px-2 py-1 rounded border transition-colors bg-red-900/20 border-red-500/30 text-red-400";
+                indIcon.className = "fas fa-arrow-down mr-1";
+                indText.innerText = formatter.format(change) + " (Bulan Ini)";
+            } else {
+                // Netral
+                indContainer.className = "flex items-center text-sm w-max px-2 py-1 rounded border transition-colors bg-gray-800 border-gray-600 text-gray-400";
+                indIcon.className = "fas fa-minus mr-1";
+                indText.innerText = "Tidak ada perubahan";
+            }
+
+            // 3. Update Riwayat List
+            const historyContainer = document.getElementById('history-content');
+            let historyHTML = '';
+
+            if (data.riwayat && data.riwayat.length > 0) {
+                data.riwayat.forEach(item => {
+                    const isMasuk = item.tipe === 'masuk';
+                    const colorClass = isMasuk ? 'text-green-400' : 'text-red-400';
+                    const bgClass = isMasuk ? 'bg-green-900/20 border-green-500/30' : 'bg-red-900/20 border-red-500/30';
+                    const sign = isMasuk ? '+ ' : '- ';
+                    
+                    // Parse tanggal untuk badge
+                    const dateParts = item.tanggal.split(' '); // asumsi format "DD MMM YYYY"
+                    const day = dateParts[0] || '--';
+                    const month = dateParts[1] ? dateParts[1].toUpperCase() : '--';
+                    const year = dateParts[2] || '--';
+
+                    historyHTML += `
+                    <div class="glass-panel p-4 rounded-lg border border-gray-700/50 flex flex-row justify-between items-center gap-4 hover:bg-white/5 transition-colors">
+                        <div class="flex items-center gap-4">
+                            <div class="${bgClass} px-3 py-2 rounded-lg ${colorClass} text-xs font-mono text-center min-w-[60px] border">
+                                <div class="font-bold text-lg leading-none">${day}</div>
+                                <div class="text-[10px]">${month}</div>
+                                <div class="text-[10px] text-gray-400">${year}</div>
+                            </div>
+                            <div>
+                                <h4 class="text-white font-bold text-sm md:text-base line-clamp-1">${item.judul}</h4>
+                                <p class="text-gray-400 text-xs mb-1 line-clamp-1">${item.subJudul}</p>
+                            </div>
+                        </div>
+                        <div class="${colorClass} font-mono font-bold text-sm md:text-lg whitespace-nowrap">
+                            ${sign}${formatter.format(item.nominal)}
+                        </div>
+                    </div>`;
+                });
+            } else {
+                historyHTML = `
+                <div class="text-center py-6 text-gray-500">
+                    <i class="fas fa-folder-open text-2xl mb-2 block"></i>
+                    Belum ada data riwayat.
+                </div>`;
+            }
+
+            historyContainer.innerHTML = historyHTML;
+        }
+
+        /* --- EXPENSE HISTORY TOGGLE --- */
+        function toggleExpenseHistory() {
+            const list = document.getElementById('expense-history-list');
+            const arrow = document.getElementById('history-arrow');
+            
+            if (list.classList.contains('max-h-0')) {
+                list.classList.remove('max-h-0', 'opacity-0');
+                list.classList.add('max-h-[1000px]', 'opacity-100');
+                arrow.style.transform = 'rotate(180deg)';
+            } else {
+                list.classList.remove('max-h-[1000px]', 'opacity-100');
+                list.classList.add('max-h-0', 'opacity-0');
+                arrow.style.transform = 'rotate(0deg)';
+            }
+        }
+    </script>
+</body>
+</html>
