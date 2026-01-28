@@ -182,7 +182,7 @@
                             </button>
                         </div>
                         
-                        <!-- Profit/Minus Indicator (Bulan Ini) -->
+                        <!-- Profit/Minus Indicator (Based on Last Transaction) -->
                         <div id="indicator-container" class="hidden flex items-center text-sm w-max px-2 py-1 rounded border transition-colors">
                             <i id="indicator-icon" class="fas fa-minus mr-1"></i>
                             <span id="indicator-text">Memuat...</span>
@@ -200,7 +200,7 @@
                         <div>
                             <h4 class="text-white font-bold text-lg mb-2">Informasi Penting</h4>
                             <p class="text-gray-400 text-sm leading-relaxed">
-                                Data yang ditampilkan diambil langsung dari Database Google Sheet "Riwayat". Harap konfirmasi ke bendahara jika terdapat selisih.
+                                Data yang ditampilkan merupakan langsung dari Sistem data keuangan. Harap konfirmasi ke bendahara jika terdapat selisih dan kesalahan input.
                             </p>
                         </div>
                     </div>
@@ -332,33 +332,36 @@
             saldoEl.classList.remove('hidden');
             toggleBtn.classList.remove('hidden'); // Tampilkan mata setelah data siap
 
-            // 2. Update Indicator (Bulan Ini)
+            // 2. Update Indicator (Berdasarkan Transaksi Terakhir)
             const formatter = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 });
             const indContainer = document.getElementById('indicator-container');
             const indIcon = document.getElementById('indicator-icon');
             const indText = document.getElementById('indicator-text');
             const indSkel = document.getElementById('indicator-skeleton');
             
-            const change = data.perubahanBulanIni;
-            
             indSkel.classList.add('hidden');
             indContainer.classList.remove('hidden');
             
-            if (change > 0) {
-                // Profit (Hijau)
-                indContainer.className = "flex items-center text-sm w-max px-2 py-1 rounded border transition-colors bg-green-900/20 border-green-500/30 text-green-400";
-                indIcon.className = "fas fa-arrow-up mr-1";
-                indText.innerText = "+" + formatter.format(change) + " Saat Ini ";
-            } else if (change < 0) {
-                // Minus (Merah)
-                indContainer.className = "flex items-center text-sm w-max px-2 py-1 rounded border transition-colors bg-red-900/20 border-red-500/30 text-red-400";
-                indIcon.className = "fas fa-arrow-down mr-1";
-                indText.innerText = formatter.format(change) + " Saat Ini";
+            if (data.riwayat && data.riwayat.length > 0) {
+                const latest = data.riwayat[0]; // Data paling baru (karena reversed di backend)
+                const nominalFormatted = formatter.format(latest.nominal);
+
+                if (latest.tipe === 'masuk') {
+                    // Profit (Hijau)
+                    indContainer.className = "flex items-center text-sm w-max px-2 py-1 rounded border transition-colors bg-green-900/20 border-green-500/30 text-green-400";
+                    indIcon.className = "fas fa-arrow-up mr-1";
+                    indText.innerText = "+" + nominalFormatted + " Masuk";
+                } else {
+                    // Minus (Merah)
+                    indContainer.className = "flex items-center text-sm w-max px-2 py-1 rounded border transition-colors bg-red-900/20 border-red-500/30 text-red-400";
+                    indIcon.className = "fas fa-arrow-down mr-1";
+                    indText.innerText = "-" + nominalFormatted + " Keluar";
+                }
             } else {
-                // Netral
+                // Belum ada data
                 indContainer.className = "flex items-center text-sm w-max px-2 py-1 rounded border transition-colors bg-gray-800 border-gray-600 text-gray-400";
                 indIcon.className = "fas fa-minus mr-1";
-                indText.innerText = "Tidak ada perubahan";
+                indText.innerText = "Belum ada transaksi";
             }
 
             // 3. Update Riwayat List
