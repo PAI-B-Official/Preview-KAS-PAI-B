@@ -148,7 +148,7 @@
                 <h2 class="text-5xl md:text-7xl font-tech font-bold text-white mb-4">KEUANGAN KELAS</h2>
                 <div class="h-1 w-24 bg-red-600 mx-auto rounded-full shadow-[0_0_10px_#ef4444]"></div>
                 <div class="flex items-center justify-center gap-2 mt-4 text-gray-400 text-sm">
-                    <span> Dana Terkumpul PAI B 2025</span>
+                    <span>Transparansi Dana PAI B 2025</span>
                     <button onclick="fetchFinanceData()" class="hover:text-white transition-colors" title="Refresh Data">
                         <i class="fas fa-sync-alt" id="refresh-icon"></i>
                     </button>
@@ -168,15 +168,16 @@
                         </p>
                         
                         <!-- Saldo Wrapper -->
-                        <div class="flex items-center gap-4 mb-4">
+                        <div class="flex items-center gap-4 mb-4 overflow-hidden">
                             <!-- Skeleton Loader -->
                             <div id="saldo-skeleton" class="h-10 w-48 shimmer rounded"></div>
                             
                             <!-- Actual Value (Hidden by default logic) -->
-                            <h3 id="saldo-display" class="hidden text-4xl md:text-5xl font-bold text-white font-mono tracking-tight">Rp 0</h3>
+                            <!-- ADDED: whitespace-nowrap to prevent wrapping, default text size -->
+                            <h3 id="saldo-display" class="hidden font-bold text-white font-mono tracking-tight whitespace-nowrap transition-all duration-300">Rp 0</h3>
                             
                             <!-- Eye Button -->
-                            <button onclick="toggleSaldoVisibility(event)" id="btn-toggle-saldo" class="hidden text-gray-400 hover:text-white transition-colors text-2xl z-20 p-2 focus:outline-none" title="Tampilkan/Sembunyikan Saldo">
+                            <button onclick="toggleSaldoVisibility(event)" id="btn-toggle-saldo" class="hidden text-gray-400 hover:text-white transition-colors text-2xl z-20 p-2 focus:outline-none flex-shrink-0" title="Tampilkan/Sembunyikan Saldo">
                                 <i class="fas fa-eye"></i>
                             </button>
                         </div>
@@ -199,7 +200,7 @@
                         <div>
                             <h4 class="text-white font-bold text-lg mb-2">Informasi Penting</h4>
                             <p class="text-gray-400 text-sm leading-relaxed">
-                                Saldo yang ditampilkan merupakan saldo yang sudah terkumpul dari awal kesepakatan, dan terhubung langsung secara Real Time tanpa rekayasa.
+                                Data yang ditampilkan diambil langsung dari Database Google Sheet "Riwayat". Harap konfirmasi ke bendahara jika terdapat selisih.
                             </p>
                         </div>
                     </div>
@@ -259,7 +260,8 @@
                 <h3 class="text-xl font-tech tracking-widest text-gray-300">TOTAL SALDO AKTIF</h3>
             </div>
 
-            <h2 id="modal-saldo-value" class="text-5xl md:text-6xl font-bold text-white mb-6 font-mono tracking-tight break-words">Rp 0</h2>
+            <!-- ADDED: whitespace-nowrap to prevent wrapping -->
+            <h2 id="modal-saldo-value" class="font-bold text-white mb-6 font-mono tracking-tight whitespace-nowrap transition-all duration-300">Rp 0</h2>
 
             <div id="modal-indicator-area" class="flex justify-center mb-8">
                 <!-- Content copied via JS -->
@@ -405,7 +407,7 @@
             historyContainer.innerHTML = historyHTML;
         }
 
-        /* --- VISIBILITY TOGGLE LOGIC --- */
+        /* --- VISIBILITY TOGGLE LOGIC & AUTO RESIZE --- */
         function toggleSaldoVisibility(e) {
             e.stopPropagation(); // Mencegah klik kartu (modal) saat klik mata
             isSaldoVisible = !isSaldoVisible;
@@ -417,14 +419,33 @@
             const icon = document.querySelector('#btn-toggle-saldo i');
             const formatter = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 });
 
+            // 1. Tentukan Teks
+            let textToShow = "";
             if (isSaldoVisible) {
-                // Tampilkan Saldo
-                saldoEl.innerText = formatter.format(currentSaldo);
+                textToShow = formatter.format(currentSaldo);
                 icon.className = "fas fa-eye-slash"; // Ikon mata dicoret (sembunyikan)
             } else {
-                // Sembunyikan Saldo
-                saldoEl.innerText = "Rp ••••••••";
+                textToShow = "Rp ••••••••";
                 icon.className = "fas fa-eye"; // Ikon mata (tampilkan)
+            }
+            saldoEl.innerText = textToShow;
+
+            // 2. Logic Auto Resize (Teks mengecil jika panjang)
+            // Hapus kelas ukuran font lama
+            saldoEl.classList.remove('text-2xl', 'text-3xl', 'text-4xl', 'text-5xl', 'md:text-3xl', 'md:text-4xl', 'md:text-5xl');
+            
+            // Cek panjang karakter
+            const len = textToShow.length;
+            
+            if (len > 18) { 
+                // Sangat Panjang (misal ratusan juta atau milyar) -> Paling Kecil
+                saldoEl.classList.add('text-2xl', 'md:text-3xl'); 
+            } else if (len > 14) { 
+                // Panjang (Puluhan Juta: "Rp 10.000.000" = 13-14 chars) -> Sedang
+                saldoEl.classList.add('text-3xl', 'md:text-4xl'); 
+            } else { 
+                // Normal (Jutaan/Ribuan) -> Besar
+                saldoEl.classList.add('text-4xl', 'md:text-5xl'); 
             }
         }
 
@@ -446,15 +467,28 @@
 
         /* --- SALDO PREVIEW MODAL LOGIC --- */
         function openSaldoPreview() {
-            // Logic: Tampilkan apa adanya (jika tersembunyi, di modal juga tersembunyi)
-            const saldoValue = document.getElementById('saldo-display').innerText;
+            const saldoDisplay = document.getElementById('saldo-display');
+            const saldoValueText = saldoDisplay.innerText;
+            const modalSaldoEl = document.getElementById('modal-saldo-value');
             
             // Clone indicator node
             const indicatorNode = document.getElementById('indicator-container').cloneNode(true);
             
             // Set Modal Data
-            document.getElementById('modal-saldo-value').innerText = saldoValue;
+            modalSaldoEl.innerText = saldoValueText;
             
+            // Auto Resize Logic untuk Modal (Ukuran dasar lebih besar dari dashboard)
+            modalSaldoEl.classList.remove('text-3xl', 'text-4xl', 'text-5xl', 'text-6xl', 'md:text-4xl', 'md:text-5xl', 'md:text-6xl', 'md:text-7xl');
+            
+            const len = saldoValueText.length;
+            if (len > 18) {
+                modalSaldoEl.classList.add('text-3xl', 'md:text-4xl');
+            } else if (len > 14) {
+                modalSaldoEl.classList.add('text-4xl', 'md:text-5xl');
+            } else {
+                modalSaldoEl.classList.add('text-5xl', 'md:text-6xl');
+            }
+
             const modalIndicatorArea = document.getElementById('modal-indicator-area');
             modalIndicatorArea.innerHTML = ''; // Clear previous
             
